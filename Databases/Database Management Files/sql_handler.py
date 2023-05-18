@@ -1,7 +1,7 @@
 import sqlite3
 from sqlite3 import Error
 
-tableSQL = [
+tableSQL = [ 
     """CREATE TABLE IF NOT EXISTS patients (
         patientID int PRIMARY KEY,
         lastName varchar(255) NOT NULL,
@@ -21,10 +21,18 @@ tableSQL = [
         medicalHistory varchar(255),
         room varchar(255)
     );
+    """,
+    """CREATE TABLE IF NOT EXISTS accounts (
+        id varchar(255) PRIMARY KEY,
+        accountType varchar(255) NOT NULL,
+        email varchar(255) NOT NULL,
+        username varchar(255) NOT NULL,
+        password varchar(255) NOT NULL
+    );
     """
 ]
 
-tables = ["patients"]
+tables = ["patients", "accounts"]
 
 def create_connection(db_file):
     conn = None
@@ -88,7 +96,7 @@ def database_initialization(db_file):
     conn = create_connection(db_file)
     for create_table_sql in tableSQL:
         create_table(conn, create_table_sql)
-    return conn
+    conn.close()
 
 def database_reset(conn):
     for table in tables:
