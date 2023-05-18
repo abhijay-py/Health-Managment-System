@@ -119,3 +119,4 @@ def database_reset(conn):
     for table in tables:
         drop_table(conn, table)
     close_connection(conn)
+ 

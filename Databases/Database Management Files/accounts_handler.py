@@ -88,7 +88,7 @@ def create_account(conn, email, password, id, accountType):
     if not password_is_valid:
         return (False, account_exists, id_exists, valid_acc_type, password_is_valid)
 
-    query = f"INSERT INTO accounts (email, id, accountType, password) VALUES (?, ?, ?, ?);"
+    query = "INSERT INTO accounts (email, id, accountType, password) VALUES (?, ?, ?, ?);"
     values = (email, id, accountType, password)
     insert_data(conn, query, values)
 
