@@ -1,4 +1,4 @@
-from sql_handler import create_connection, insert_data, update_data, retrieve_data
+from sql_handler import insert_data, update_data, retrieve_data
 
 #Returns patient_exists (bool)
 def patient_exists(conn, patient_id):
@@ -52,7 +52,7 @@ def get_medical_history_info(conn, patient_id):
 
 #Returns (patient_exists (bool), (primaryCareDocID (int), prescriptions (str), treatmentPlan (str), doctorNotes (str), room (str))) 
 #Last tuple will be empty if patient doesn't exist.
-def get_current_patient_info(conn, patient_id)()
+def get_current_patient_info(conn, patient_id):
     patient_exists = patient_exists(conn, patient_id)
 
     if not patient_exists:

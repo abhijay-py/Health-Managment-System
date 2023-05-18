@@ -1,4 +1,4 @@
-from sql_handler import create_connection, insert_data, update_data, retrieve_data
+from sql_handler import insert_data, update_data, retrieve_data
 
 #Returns whether an account exists with the provided email (bool)
 def account_exists(conn, email):
