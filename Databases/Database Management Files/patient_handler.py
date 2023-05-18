@@ -96,6 +96,45 @@ def get_bill_id(conn, patient_id):
 
     return (patient_exists, data)
 
+#Ensure hasInsurance matches with whether or not you input insurance data or you'll keep getting False for modified_insurance
+#Returns (modified_insurance (bool), patient_exists (bool))
+#While all vars are default None, they will take the values in the DB.
+def modify_insurance(conn, patient_id:int, hasInsurance:bool = None, insuranceProvider:str = None, insurance_id:int = None):
+    patient_exists = patient_exists(conn, patient_id)
+
+    if not patient_exists or (hasInsurance is None and insuranceProvider is None and insurance_id is None):
+        return (False, patient_exists)
+    
+    query = f"SELECT hasInsurance, insuranceProvider, insuranceID FROM patients WHERE patientID = {patient_id};"
+    data = retrieve_data(conn, query)[0]
+
+    new_data = [hasInsurance, insuranceProvider, insurance_id]
+
+    
+
+    if hasInsurance is not None and not hasInsurance:
+        new_data = [int(hasInsurance), None, None]
+
+    elif hasInsurance is None and data[0] == 0:
+        return (False, patient_exists)
+    
+    elif hasInsurance and data[0] == 0 and insuranceProvider is None and insurance_id is None:
+        return (False, patient_exists)
+
+    else:
+        if hasInsurance is not None:
+            int(hasInsurance)
+
+        for i in range(len(new_data)):
+            if new_data[i] is None:
+                new_data[i] = data[i]
+
+    query = f"""UPDATE patients SET hasInsurance = {new_data[0]}, insuranceProvider = {new_data[1]}, 
+                insuranceID = {new_data[2]} WHERE patientID = {patient_id};"""
+    update_data(conn, query)
+
+    return (True, patient_exists)
+    
 #ENSURE THIS PATIENT IS NEW + BIRTHDAY IS VALID (no checks)
 #Returns (patient_id (int), valid_name (bool))
 #If valid name, patient_id will not be None.
