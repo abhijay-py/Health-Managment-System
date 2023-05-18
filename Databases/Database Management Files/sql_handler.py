@@ -1,6 +1,7 @@
 import sqlite3
 from sqlite3 import Error
 
+#Create Table SQLS
 tableSQL = [ 
     """CREATE TABLE IF NOT EXISTS patients (
         patientID int PRIMARY KEY,
@@ -10,7 +11,7 @@ tableSQL = [
         hasInsurance int NOT NULL,
         insuranceProvider varchar(255),
         insuranceID int,
-        priceDue decimal NOT NULL,
+        billID int NOT NULL,
         primaryCareDocID int,
         prescriptions varchar(255),
         treatmentPlan varchar(255),
@@ -23,17 +24,18 @@ tableSQL = [
     );
     """,
     """CREATE TABLE IF NOT EXISTS accounts (
-        id varchar(255) PRIMARY KEY,
+        email varchar(255) PRIMARY KEY,
+        id int NOT NULL,
         accountType varchar(255) NOT NULL,
-        email varchar(255) NOT NULL,
-        username varchar(255) NOT NULL,
         password varchar(255) NOT NULL
     );
     """
 ]
 
+#Table Names
 tables = ["patients", "accounts"]
 
+#Create a connection to a specific db_file and return the connection.
 def create_connection(db_file):
     conn = None
 
@@ -46,6 +48,15 @@ def create_connection(db_file):
 
     return conn
 
+#Close the connection.
+def close_connection(conn):
+    try:
+        conn.close()
+
+    except Error as e:
+        print(e)
+
+#Create a new SQL table.
 def create_table(conn, create_table_sql):
     try:
         curr = conn.cursor()
@@ -54,6 +65,7 @@ def create_table(conn, create_table_sql):
     except Error as e:
         print(e)
 
+#Insert new entries into the db.
 def insert_data(conn, insert_data_sql, values):
     try:
         curr = conn.cursor()
@@ -63,6 +75,7 @@ def insert_data(conn, insert_data_sql, values):
     except Error as e:
         print(e)
 
+#Update previous entries into the db.
 def update_data(conn, update_data_sql):
     try:
         curr = conn.cursor()
@@ -72,6 +85,7 @@ def update_data(conn, update_data_sql):
     except Error as e:
         print(e)
 
+#Query the db for data.
 def retrieve_data(conn, retrieve_data_sql):
     try:
         curr = conn.cursor()
@@ -82,6 +96,7 @@ def retrieve_data(conn, retrieve_data_sql):
         print(e)
         return None
 
+#Drop a specific table from the db.
 def drop_table(conn, table):
     try:
         curr = conn.cursor()
@@ -92,13 +107,15 @@ def drop_table(conn, table):
         print(e)
         return None
 
+#Create all tables if not created already in a specific db.
 def database_initialization(db_file):
     conn = create_connection(db_file)
     for create_table_sql in tableSQL:
         create_table(conn, create_table_sql)
-    conn.close()
+    close_connection(conn)
 
+#Drop all tables from the db to reset the db.
 def database_reset(conn):
     for table in tables:
         drop_table(conn, table)
-    conn.close()
+    close_connection(conn)
