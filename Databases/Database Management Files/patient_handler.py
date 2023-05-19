@@ -2,13 +2,80 @@ from sql_handler import insert_data, update_data, retrieve_data
 from bill_handler import new_bill
 
 #TODO: ADD MODIFYING FUNCTIONS TO MODIFY EXISTING PATIENTS
+#TODO: Modify basic info?, medical history, current patient info. Potentially split into different functions 
+
+#HELPER FUNCTIONS
 
 #Returns patient_exists (bool)
 def patient_exists(conn, patient_id):
     query = f"SELECT firstName FROM patients WHERE patientId = {patient_id};"
     data = retrieve_data(conn, query)
     return not bool(data)
+
+#Returns modified_history (bool)
+#Adds on to previous medical history with a new line.
+def update_medical_history(conn, patient_id, allergies, vaccines, testResults, medicalHistory):
+    data = get_medical_history_info(conn, patient_id)[1]
+
+    new_data = [allergies, vaccines, testResults, medicalHistory]
+
+    for i in range(len(new_data)):
+        if new_data[i] is None:
+            new_data[i] = data[i]
+        elif data[i] is not None:
+            new_data[i] = data[i] + '\n' + new_data[i]
+
+    query = f"""UPDATE patients SET allergies = {new_data[0]}, vaccines = {new_data[1]}, 
+                testResults = {new_data[2]}, medicalHistory = {new_data[3]} WHERE patientID = {patient_id};"""
+    update_data(conn, query)
+
+    return True
+
+#Returns modified_history (bool)
+#Replaces previous medical history entries.
+def replace_medical_history(conn, patient_id, allergies, vaccines, testResults, medicalHistory):
+    data = get_medical_history_info(conn, patient_id)[1]
+
+    new_data = [allergies, vaccines, testResults, medicalHistory]
+
+    for i in range(len(new_data)):
+        if new_data[i] is None:
+            new_data[i] = data[i]
+
+    query = f"""UPDATE patients SET allergies = {new_data[0]}, vaccines = {new_data[1]}, 
+                testResults = {new_data[2]}, medicalHistory = {new_data[3]} WHERE patientID = {patient_id};"""
+    update_data(conn, query)
+
+    return True
+
+#Returns modified_history (bool)
+#Removes previous medical history entries.
+def delete_medical_history(conn, patient_id, allergies, vaccines, testResults, medicalHistory):
+    data = get_medical_history_info(conn, patient_id)[1]
+    data = [i.split('\n') for i in data if i is not None]
     
+    del_data = [allergies, vaccines, testResults, medicalHistory]
+
+    for i in range(len(del_data)):
+        if del_data[i] is not None:
+            if data[i] is None or del_data[i] not in data[i]:
+                return False
+            
+            data[i].remove(del_data[i])
+
+            if len(data[i]) == 0:
+                data[i] = None
+
+    data = [i.join('\n') for i in data if i is not None]
+
+    query = f"""UPDATE patients SET allergies = {data[0]}, vaccines = {data[1]}, 
+                testResults = {data[2]}, medicalHistory = {data[3]} WHERE patientID = {patient_id};"""
+    update_data(conn, query)
+
+    return True
+
+#USED FUNCTIONS
+
 #Returns (valid_name (bool), patient_info (list of tuples of (id, birthday)))
 #List will be empty if name doesn't exist or is invalid.
 def search_patient(conn, fullName):
@@ -105,20 +172,17 @@ def modify_insurance(conn, patient_id:int, hasInsurance:bool = None, insurancePr
     if not patient_exists or (hasInsurance is None and insuranceProvider is None and insurance_id is None):
         return (False, patient_exists)
     
-    query = f"SELECT hasInsurance, insuranceProvider, insuranceID FROM patients WHERE patientID = {patient_id};"
-    data = retrieve_data(conn, query)[0]
+    data = get_insurance_info(conn, patient_id)[1]
 
     new_data = [hasInsurance, insuranceProvider, insurance_id]
-
-    
 
     if hasInsurance is not None and not hasInsurance:
         new_data = [int(hasInsurance), None, None]
 
-    elif hasInsurance is None and data[0] == 0:
+    elif hasInsurance is None and not data[0]:
         return (False, patient_exists)
     
-    elif hasInsurance and data[0] == 0 and insuranceProvider is None and insurance_id is None:
+    elif hasInsurance and not data[0] and insuranceProvider is None and insurance_id is None:
         return (False, patient_exists)
 
     else:
@@ -127,14 +191,47 @@ def modify_insurance(conn, patient_id:int, hasInsurance:bool = None, insurancePr
 
         for i in range(len(new_data)):
             if new_data[i] is None:
-                new_data[i] = data[i]
+                if i == 0:
+                    new_data[i] = int(data[i])
+                else:
+                    new_data[i] = data[i]
 
     query = f"""UPDATE patients SET hasInsurance = {new_data[0]}, insuranceProvider = {new_data[1]}, 
                 insuranceID = {new_data[2]} WHERE patientID = {patient_id};"""
     update_data(conn, query)
 
     return (True, patient_exists)
+
+#Returns (modified_history (bool), patient_exits(bool), valid_status (bool))
+#If empty strings are not passed with replace status, the db entries will not be removed.
+#Last bool will be empty if patient doesn't exist
+def modify_medical_history(conn, patient_id:int, changeStatus:str = "update", allergies:str = None, 
+                           vaccines:str = None,  testResults:str = None, medicalHistory:str = None):
+    patient_exists = patient_exists(conn, patient_id)
+
+    if not patient_exists:
+        return (False, patient_exists, None)
+
+    valid_status = changeStatus == "update" or changeStatus == "replace" or changeStatus == "delete" or changeStatus == "wipe"
+    allNone = allergies is None and vaccines is None and testResults is None and medicalHistory is None
     
+    if not valid_status or allNone and changeStatus != "wipe" or not allNone and changeStatus == "wipe":
+        return (False, patient_exists, valid_status)
+    
+    if changeStatus == "update":
+        return (update_medical_history(conn, patient_id, allergies, vaccines, testResults, medicalHistory), valid_status)
+
+    elif changeStatus == "replace":
+        return (replace_medical_history(conn, patient_id, allergies, vaccines, testResults, medicalHistory), valid_status)
+    
+    elif changeStatus == "delete":
+        return (delete_medical_history(conn, patient_id, allergies, vaccines, testResults, medicalHistory), valid_status)
+    
+    else:
+        return (replace_medical_history(conn, "", "", "", "", ""))
+
+
+
 #ENSURE THIS PATIENT IS NEW + BIRTHDAY IS VALID (no checks)
 #Returns (patient_id (int), valid_name (bool))
 #If valid name, patient_id will not be None.

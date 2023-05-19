@@ -1,6 +1,8 @@
 from sql_handler import insert_data, update_data, retrieve_data
 import re
 
+#HELPER FUNCTIONS
+
 #Returns whether an account exists with the provided email (bool)
 def account_exists(conn, email):
     query = f"SELECT email FROM accounts WHERE email = {email};"
@@ -28,6 +30,8 @@ def login_success(conn, email, password):
     query = f"SELECT password FROM accounts WHERE email = {email};"
     data = retrieve_data(conn, query)[0][0]
     return data == password
+
+#USED FUNCTIONS
 
 #Return (account_exists (bool), email (str))
 #Email will return None if account does not exist.
