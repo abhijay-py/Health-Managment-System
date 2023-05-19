@@ -1,6 +1,8 @@
 from sql_handler import insert_data, update_data, retrieve_data
 import re
 
+#TODO: Maybe add email changing options.
+
 #HELPER FUNCTIONS
 
 #Returns whether an account exists with the provided email (bool)

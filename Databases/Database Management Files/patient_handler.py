@@ -1,8 +1,16 @@
+""" 
+CHANGE STATUSES 
+    UPDATE - add on to previous entries
+    REPLACE - replaces previous entries
+    DELETE - deletes specific data in each column 
+    WIPE - removes all data from the specific colummns for the patient
+"""
+
 from sql_handler import insert_data, update_data, retrieve_data
 from bill_handler import new_bill
 
 #TODO: ADD MODIFYING FUNCTIONS TO MODIFY EXISTING PATIENTS
-#TODO: Modify basic info?, medical history, current patient info. Potentially split into different functions 
+#TODO: Modify basic info?
 
 #HELPER FUNCTIONS
 
@@ -70,6 +78,68 @@ def delete_medical_history(conn, patient_id, allergies, vaccines, testResults, m
 
     query = f"""UPDATE patients SET allergies = {data[0]}, vaccines = {data[1]}, 
                 testResults = {data[2]}, medicalHistory = {data[3]} WHERE patientID = {patient_id};"""
+    update_data(conn, query)
+
+    return True
+
+#Returns modified_info (bool)
+#Adds on to previous current info with a new line.
+def update_current_info(conn, patient_id, prescriptions, treatmentPlan, doctorNotes):
+    data = get_medical_history_info(conn, patient_id)[1]
+
+    new_data = [prescriptions, treatmentPlan, doctorNotes]
+
+    for i in range(len(new_data)):
+        if new_data[i] is None:
+            new_data[i] = data[i]
+        elif data[i] is not None:
+            new_data[i] = data[i] + '\n' + new_data[i]
+
+    query = f"""UPDATE patients SET prescriptions = {new_data[0]}, treatmentPlan = {new_data[1]}, 
+                doctorNotes = {new_data[2]} WHERE patientID = {patient_id};"""
+    update_data(conn, query)
+
+    return True
+
+#Returns modified_info (bool)
+#Replaces previous current info entries.
+def replace_current_info(conn, patient_id, prescriptions, treatmentPlan, doctorNotes):
+    data = get_current_patient_info(conn, patient_id)[1]
+
+    new_data = [prescriptions, treatmentPlan, doctorNotes]
+
+    for i in range(len(new_data)):
+        if new_data[i] is None:
+            new_data[i] = data[i]
+
+    query = f"""UPDATE patients SET prescriptions = {new_data[0]}, treatmentPlan = {new_data[1]}, 
+                doctorNotes = {new_data[2]} WHERE patientID = {patient_id};"""
+    update_data(conn, query)
+
+    return True
+
+#Returns modified_info (bool)
+#Removes previous current info entries.
+def delete_current_info(conn, patient_id, prescriptions, treatmentPlan, doctorNotes):
+    data = get_medical_history_info(conn, patient_id)[1]
+    data = [i.split('\n') for i in data if i is not None]
+    
+    del_data = [prescriptions, treatmentPlan, doctorNotes]
+
+    for i in range(len(del_data)):
+        if del_data[i] is not None:
+            if data[i] is None or del_data[i] not in data[i]:
+                return False
+            
+            data[i].remove(del_data[i])
+
+            if len(data[i]) == 0:
+                data[i] = None
+
+    data = [i.join('\n') for i in data if i is not None]
+
+    query = f"""UPDATE patients SET prescriptions = {del_data[0]}, treatmentPlan = {del_data[1]}, 
+                doctorNotes = {del_data[2]} WHERE patientID = {patient_id};"""
     update_data(conn, query)
 
     return True
@@ -202,7 +272,7 @@ def modify_insurance(conn, patient_id:int, hasInsurance:bool = None, insurancePr
 
     return (True, patient_exists)
 
-#Returns (modified_history (bool), patient_exits(bool), valid_status (bool))
+#Returns (modified_history (bool), patient_exists(bool), valid_status (bool))
 #If empty strings are not passed with replace status, the db entries will not be removed.
 #Last bool will be empty if patient doesn't exist
 def modify_medical_history(conn, patient_id:int, changeStatus:str = "update", allergies:str = None, 
@@ -230,9 +300,61 @@ def modify_medical_history(conn, patient_id:int, changeStatus:str = "update", al
     else:
         return (replace_medical_history(conn, "", "", "", "", ""))
 
+#ENSURE DOCTOR_ID IS VALID (no checks)
+#Returns (changed_doctor(bool), patient_exists (bool))
+def change_doctor(conn, patient_id, doctor_id:int = None):
+    patient_exists = patient_exists(conn, patient_id)
 
+    if not patient_exists:
+        return (False, patient_exists)
+    
+    query = f"UPDATE patients SET primaryCareDocID = {doctor_id} WHERE patientID = {patient_id};"
+    update_data(conn, query)
+    
+    return (True, patient_exists)
 
-#ENSURE THIS PATIENT IS NEW + BIRTHDAY IS VALID (no checks)
+#ENSURE ROOM IS VALID (no checks)
+#Returns (changed_room(bool), patient_exists (bool))
+def change_room(conn, patient_id, room:str = None):
+    patient_exists = patient_exists(conn, patient_id)
+
+    if not patient_exists:
+        return (False, patient_exists)
+    
+    query = f"UPDATE patients SET room = {room} WHERE patientID = {patient_id};"
+    update_data(conn, query)
+    
+    return (True, patient_exists)
+
+#Returns (modified_info (bool), patient_exists(bool), valid_status (bool))
+#If empty strings are not passed with replace status, the db entries will not be removed.
+#Last bool will be empty if patient doesn't exist
+def modify_current_info(conn, patient_id:int, changeStatus:str = "update", prescriptions:str = None, 
+                        treatmentPlan:str = None, doctorNotes:str = None):
+    patient_exists = patient_exists(conn, patient_id)
+
+    if not patient_exists:
+        return (False, patient_exists, None)
+
+    valid_status = changeStatus == "update" or changeStatus == "replace" or changeStatus == "delete" or changeStatus == "wipe"
+    allNone = prescriptions is None and treatmentPlan is None and doctorNotes is None
+    
+    if not valid_status or allNone and changeStatus != "wipe" or not allNone and changeStatus == "wipe":
+        return (False, patient_exists, valid_status)
+    
+    if changeStatus == "update":
+        return (update_current_info(conn, patient_id, prescriptions, treatmentPlan, doctorNotes), valid_status)
+
+    elif changeStatus == "replace":
+        return (replace_current_info(conn, patient_id, prescriptions, treatmentPlan, doctorNotes), valid_status)
+    
+    elif changeStatus == "delete":
+        return (delete_current_info(conn, patient_id, prescriptions, treatmentPlan, doctorNotes), valid_status)
+    
+    else:
+        return (replace_current_info(conn, "", "", "", "", ""))
+
+#ENSURE THIS PATIENT IS NEW + BIRTHDAY + ROOM + DOCTOR IS VALID (no checks).
 #Returns (patient_id (int), valid_name (bool))
 #If valid name, patient_id will not be None.
 def new_patient(conn, fullName:str, birthday:str, hasInsurance:bool, insuranceProvider:str = None, insurance_id:int = None, 
