@@ -1,2 +1,3 @@
 /.env
-/Databases/SQL Files/hospital_data.db
+/Account Access/Databases/hospital_data.db
+/Account Access/Databases/_data_managment_test.py
