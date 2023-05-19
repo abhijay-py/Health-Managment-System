@@ -1,7 +1,7 @@
+#ENSURE EMAIL IS VALID (NO CHECKS HERE)
+
 from sql_handler import insert_data, update_data, retrieve_data
 import re
-
-#TODO: Maybe add email changing options.
 
 #HELPER FUNCTIONS
 
@@ -117,6 +117,19 @@ def change_password(conn, email, password):
     update_data(conn, query)
     
     return (True, account_exists, password_is_valid)
+
+#Return (email_changed (bool), account_exists (bool), email_is_used (bool))
+def change_email(conn, old_email, new_email):
+    account_exists = account_exists(conn, old_email)
+    email_is_used = account_exists(conn, new_email)
+    
+    if not account_exists or email_is_used:
+        return (False, account_exists, email_is_used)
+
+    query = f"UPDATE accounts SET email = {new_email} WHERE email = {old_email};"
+    update_data(conn, query)
+    
+    return (True, account_exists, email_is_used)
 
 #Returns account_deleted (bool)
 #Deletes an account based on email provided. If false, account does not exist.

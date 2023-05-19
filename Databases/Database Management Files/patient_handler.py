@@ -9,9 +9,6 @@ CHANGE STATUSES
 from sql_handler import insert_data, update_data, retrieve_data
 from bill_handler import new_bill
 
-#TODO: ADD MODIFYING FUNCTIONS TO MODIFY EXISTING PATIENTS
-#TODO: Modify basic info?
-
 #HELPER FUNCTIONS
 
 #Returns patient_exists (bool)
