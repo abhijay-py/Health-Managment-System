@@ -7,9 +7,13 @@ from Account_Access.doctor import Doctor
 from Account_Access.hospital import Admin
 from Account_Access.nurse import Nurse
 
+#TODO: Implement
+#Returns valid_email (bool)
 def email_checker(email):
     pass
 
+#Returns logged_in_acc (Account)
+#Keeps asking for login info until you're logged in
 def login(conn):
     logged_in = False
     
@@ -46,9 +50,14 @@ def login(conn):
     else:
         return Admin(conn, email, id)
 
+#TODO: Implement
+#Returns new_acc (Account)
+#Keeps asking for new account info until you created a new account
 def new_account(conn):
     pass
 
+#Returns logged_in_acc (Account)
+#The menu that is displayed before the user is logged in
 def pre_login_menu(conn):
     logged_in = False
 
@@ -64,6 +73,7 @@ def pre_login_menu(conn):
         elif choice.upper() == "C":
             return new_account(conn)
 
+#The menu that is displayed after the user is logged in
 def post_login_menu(account):
     account.menu()
 
