@@ -1,11 +1,12 @@
 #Menu System/Login System through main
 
 from Account_Access.Databases.accounts_handler import login_attempt, create_account
-from Account_Access.Databases.database_handler import create_connection
+from Account_Access.Databases.database_handler import create_connection, database_initialization
 from Account_Access.patient import Patient
 from Account_Access.doctor import Doctor
 from Account_Access.hospital import Admin
 from Account_Access.nurse import Nurse
+from getpass import getpass
 
 #TODO: Implement
 #Returns valid_email (bool)
@@ -19,7 +20,7 @@ def login(conn):
     
     while not logged_in:
         email = input("Please enter your email: ")
-        password = input("Please enter your password: ")
+        password = getpass("Please enter your password: ")
 
         if not email_checker(email):
             print("Please enter a valid email address.")
@@ -78,7 +79,9 @@ def post_login_menu(account):
     account.menu()
 
 def main():
-    conn = create_connection("hospital_data.db")
+    db_file = "hospital_data.db"
+    conn = create_connection(db_file)
+    database_initialization(db_file)
     account = pre_login_menu(conn)
     post_login_menu(account)
 
