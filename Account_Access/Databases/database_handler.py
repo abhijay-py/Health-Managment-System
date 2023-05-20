@@ -25,7 +25,7 @@ tableSQL = [
     """,
     """CREATE TABLE IF NOT EXISTS accounts (
         email varchar(255) PRIMARY KEY,
-        public_id varchar(255) NOT NULL,
+        publicID varchar(255) NOT NULL,
         password varchar(255) NOT NULL
     );
     """,

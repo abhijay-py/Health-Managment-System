@@ -1,6 +1,6 @@
 #ENSURE EMAIL IS VALID (NO CHECKS HERE)
 
-from database_handler import insert_data, update_data, retrieve_data
+from Account_Access.Databases.database_handler import insert_data, update_data, retrieve_data
 import re
 
 #HELPER FUNCTIONS
@@ -38,7 +38,7 @@ def login_success(conn, email, password):
 #Return (account_exists (bool), email (str))
 #Email will return None if account does not exist.
 def get_email(conn, public_id):
-    query = f"SELECT email FROM accounts WHERE public_id = {public_id};"
+    query = f"SELECT email FROM accounts WHERE publicID = {public_id};"
     data = retrieve_data(conn, query)
 
     account_exists = not bool(data)
@@ -48,7 +48,7 @@ def get_email(conn, public_id):
 
     return (account_exists, data[0][0])
 
-#Returns (account_exists (bool), login_success (bool), (id (int), account_type (str, 'P'/'D'/'N'/'H')))
+#Returns (account_exists (bool), login_success (bool), public_id (str))
 #Last tuple will be empty if login fails or account doesn't exist.
 def login_attempt(conn, email, password):
     account_exists = account_exists(conn, email)
@@ -61,15 +61,15 @@ def login_attempt(conn, email, password):
     if not login_status:
         return (account_exists, login_status, ())
 
-    query = f"SELECT id, accountType FROM accounts WHERE email = {email};"
-    data = retrieve_data(conn, query)[0]
+    query = f"SELECT publicID FROM accounts WHERE email = {email};"
+    data = retrieve_data(conn, query)[0][0]
 
     return (account_exists, login_status, data)
 
 #Returns (account_created (bool), account_exists (bool), id_exists (bool), invalid_acc_type (bool), valid_password (bool))
 #Last three booleans may return None if previous checks fail first. If account_created is true, all are true.
 def create_account(conn, email, password, id, accountType):
-    account_types = ['P', 'D', 'N', 'H']
+    account_types = ['P', 'D', 'N', 'A']
 
     account_exists = account_exists(conn, email)
     
@@ -77,7 +77,7 @@ def create_account(conn, email, password, id, accountType):
         return (False, account_exists, None, None, None)
 
     public_id = accountType + str(id)
-    query = f"SELECT id FROM accounts WHERE public_id = {public_id};"
+    query = f"SELECT publicID FROM accounts WHERE publicID = {public_id};"
     data = retrieve_data(conn, query)
     
     id_exists = bool(data)

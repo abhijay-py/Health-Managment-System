@@ -2,8 +2,8 @@ from Databases.accounts_handler import change_password, change_email
 from Databases.database_handler import create_connection
 
 class Account():
-    def __init__(self, email):
-        self.conn = create_connection("hospital_data.db")
+    def __init__(self, conn, email):
+        self.conn = conn
         self.email = email
     
     def change_account_password(self, new_password):
