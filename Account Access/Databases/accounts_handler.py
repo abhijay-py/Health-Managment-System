@@ -37,8 +37,8 @@ def login_success(conn, email, password):
 
 #Return (account_exists (bool), email (str))
 #Email will return None if account does not exist.
-def get_email(conn, id, accountType):
-    query = f"SELECT email FROM accounts WHERE id = {id} AND accountType = {accountType};"
+def get_email(conn, public_id):
+    query = f"SELECT email FROM accounts WHERE public_id = {public_id};"
     data = retrieve_data(conn, query)
 
     account_exists = not bool(data)
@@ -76,7 +76,8 @@ def create_account(conn, email, password, id, accountType):
     if not account_exists:
         return (False, account_exists, None, None, None)
 
-    query = f"SELECT id FROM accounts WHERE id = {id};"
+    public_id = accountType + str(id)
+    query = f"SELECT id FROM accounts WHERE public_id = {public_id};"
     data = retrieve_data(conn, query)
     
     id_exists = bool(data)
@@ -95,7 +96,7 @@ def create_account(conn, email, password, id, accountType):
         return (False, account_exists, id_exists, valid_acc_type, password_is_valid)
 
     query = "INSERT INTO accounts (email, id, accountType, password) VALUES (?, ?, ?, ?);"
-    values = (email, id, accountType, password)
+    values = (email, public_id, accountType, password)
     insert_data(conn, query, values)
 
     return (True, account_exists, id_exists, valid_acc_type, password_is_valid)

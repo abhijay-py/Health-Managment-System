@@ -25,9 +25,19 @@ tableSQL = [
     """,
     """CREATE TABLE IF NOT EXISTS accounts (
         email varchar(255) PRIMARY KEY,
-        id int NOT NULL,
-        accountType varchar(255) NOT NULL,
+        public_id varchar(255) NOT NULL,
         password varchar(255) NOT NULL
+    );
+    """,
+    """CREATE TABLE IF NOT EXISTS meetings (
+        meetingID int PRIMARY KEY,
+        meetingName varchar(255) NOT NULL,
+        meetingDesc varchar(255),
+        oneOnOne int NOT NULL,
+        priPersonID varchar(255) NOT NULL,
+        secPersonID varchar(255) NOT NULL,
+        othPeopleIDS varchar(255),
+        meetingDT varchar(255) NOT NULL
     );
     """
 ]
