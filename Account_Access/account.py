@@ -1,5 +1,5 @@
 from Databases.accounts_handler import change_password, change_email
-from Databases.sql_handler import create_connection
+from Databases.database_handler import create_connection
 
 class Account():
     def __init__(self, email):

@@ -1,6 +1,6 @@
 #ENSURE EMAIL IS VALID (NO CHECKS HERE)
 
-from sql_handler import insert_data, update_data, retrieve_data
+from database_handler import insert_data, update_data, retrieve_data
 import re
 
 #HELPER FUNCTIONS

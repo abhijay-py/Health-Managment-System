@@ -37,7 +37,8 @@ tableSQL = [
         priPersonID varchar(255) NOT NULL,
         secPersonID varchar(255) NOT NULL,
         othPeopleIDS varchar(255),
-        meetingDT varchar(255) NOT NULL
+        meetingDT varchar(255) NOT NULL,
+        room varchar(255) NOT NULL
     );
     """
 ]

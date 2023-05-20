@@ -6,7 +6,7 @@ CHANGE STATUSES
     WIPE - removes all data from the specific colummns for the patient
 """
 
-from sql_handler import insert_data, update_data, retrieve_data
+from database_handler import insert_data, update_data, retrieve_data
 from bill_handler import new_bill
 
 #HELPER FUNCTIONS
