@@ -1,0 +1,4 @@
+ERROR INV-EM-PWCHG - When changing account password, the email was invalid. Check account.py or accounts_handler.py.
+ERROR INV-ST-PWCHG - When changing account password, the password wasn't changed but no error states were triggered. Check account.py or accounts_handler.py.
+ERROR INV-EM-EMCHG - When changing account email, the previous/original email was invalid. Check account.py or accounts_handler.py.
+ERROR INV-ST-EMCHG - When changing account email, the email wasn't changed but no error states were triggered. Check account.py or accounts_handler.py.
